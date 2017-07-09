@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<meta title="Caked" package="com.jacobwgames.Caked" version="2.0.0" company="jacobwgames" />
+
+ 	<app file="Caked" main="Main" path="bin" />
+
+	<window fps="60" background="0xffffff" />
+	<window width="640" height="480" resizable="true" unless="mobile" />
+	<window fullscreen="true" if="mobile" />
+	<window orientation="landscape" vsync="true" antialiasing="0" if="cpp" />
+
+	<source path="src" />
+
+	<haxelib name="HaxePunk" />
+
+ 	<app preloader="" />
+
+	<assets path="assets/graphics" rename="gfx" include="*.png|*.jpg" embed="true" />
+	<assets path="assets/audio" rename="audio" include="*.mp3|*.wav" if="flash" embed="true" />
+	<assets path="assets/audio" rename="audio" include="*.wav|*.ogg" unless="flash" />
+	<assets path="assets/font" rename="font" include="*.ttf" embed="true" />
+
+	<icon path="assets/HaxePunk.svg" />
+</project>
