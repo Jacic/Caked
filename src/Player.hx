@@ -50,7 +50,7 @@ class Player extends Entity
 		playerImg = new Image("gfx/cake.png");
 		graphic = playerImg;
 		setHitbox(64, 32, -8, -14);
-		x = 320 - (playerW * 0.5);
+		x = (HXP.screen.width * 0.5) - (playerW * 0.5);
 		y = 440 - playerH;
 
 		shootSfx = new Sfx("audio/playershoot.wav");

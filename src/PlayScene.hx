@@ -90,33 +90,35 @@ class PlayScene extends Scene
 		timeText = new Text("99");
 		timeText.color = 0xee4400;
 		timeText.size = 38;
-		timeText.x = 320 - (timeText.width * 0.5);
+		timeText.x = (HXP.screen.width * 0.5) - (timeText.width * 0.5);
 		timeText.y = 2;
 		addGraphic(timeText, -10);
 		
 		waveText = new Text("WAVE 1");
 		waveText.color = 0xccaa00;
 		waveText.size = 70;
-		waveText.x = 320 - (waveText.width * 0.5);
-		waveText.y = 240 - (waveText.height * 0.5);
+		waveText.x = (HXP.screen.width * 0.5) - (waveText.width * 0.5);
+		waveText.y = (HXP.screen.height * 0.5) - (waveText.height * 0.5);
 		waveText.alpha = 0;
 		addGraphic(waveText, -10);
 		
 		var hud:Image = Image.createRect(640, 43, 0x333333, 1);
-		addGraphic(hud, -10, 0, 437);
+		hud.x = 0;
+		hud.y = 437;
+		addGraphic(hud, -10);
 		
 		scoreText = new Text("SCORE:");
 		scoreText.color = 0xccbb00;
 		scoreText.size = 35;
 		scoreText.x = 50;
-		scoreText.y = 443;
+		scoreText.y = hud.y + (hud.height * 0.5) - (scoreText.height * 0.5);
 		addGraphic(scoreText, -10);
 		
 		lifeText = new Text("LIFE:");
 		lifeText.color = 0xdd1111;
 		lifeText.size = 35;
 		lifeText.x = 460;
-		lifeText.y = 443;
+		lifeText.y = hud.y + (hud.height * 0.5) - (lifeText.height * 0.5);
 		addGraphic(lifeText, -10);
 		
 		black = Image.createRect(640, 480, 0x000000, 1);
