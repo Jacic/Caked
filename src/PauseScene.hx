@@ -38,11 +38,11 @@ class PauseScene extends Scene
 		pauseText = new Text("PRESS SPACE!");
 		pauseText.size = 40;
 		pauseText.color = 0xee2222;
-		pauseText.x = (HXP.screen.width * 0.5) - (pauseText.width * 0.5);
-		pauseText.y = (HXP.screen.height * 0.5) - (pauseText.height * 0.5);
+		pauseText.x = (HXP.screen.width * 0.5) - (pauseText.textWidth * 0.5);
+		pauseText.y = (HXP.screen.height * 0.5) - (pauseText.textHeight * 0.5);
 		addGraphic(pauseText);
 
-		Input.define("resume", [Key.P]);
+		Input.define("resume", [Key.P, Key.SPACE]);
 	}
 	
 	override public function update()

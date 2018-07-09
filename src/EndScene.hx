@@ -21,6 +21,7 @@ import haxepunk.utils.Data;
 class EndScene extends Scene
 {
 	private var black:Image;
+	private var modeText:Text;
 	private var scoreText:Text;
 	private var highscoreText:Text;
 	private var endText:Text;
@@ -28,7 +29,7 @@ class EndScene extends Scene
 	private var timer:Float;
 	private var highscore:Int;
 	
-	override public function new(won:Bool)
+	override public function new(won:Bool, gameMode:TitleScene.GameMode)
 	{
 		super();
 		
@@ -39,53 +40,82 @@ class EndScene extends Scene
 
 		//load the highscore
 		Data.load("CakedData");
-		highscore = Data.readInt("highscore", 0);
+		if(gameMode == TitleScene.GameMode.Waves)
+		{
+			highscore = Data.readInt("highscore", 0);
+		}
+		else
+		{
+			highscore = Data.readInt("highscoreEndless", 0);
+		}
 
 		//update the highscore if necessary
 		if(Globals.score > highscore)
 		{
-			Data.write("highscore", Globals.score);
+			if(gameMode == TitleScene.GameMode.Waves)
+			{
+				Data.write("highscore", Globals.score);
+			}
+			else
+			{
+				Data.write("highscoreEndless", Globals.score);
+			}
 			Data.save("CakedData"); //actually write the data
 			highscore = Globals.score;
 		}
 		
-		if(won)
+		if(gameMode == TitleScene.GameMode.Endless)
 		{
-			endText = new Text("THE DAY WAS SAVED AND\nEVERYONE WAS HAPPY.\nCAKE THREW A PARTY TO CELEBRATE.");
+			endText = new Text("CAKE FOUGHT BRAVELY,\nBUT IN THE END WAS BEATEN BACK BY\nTHE EVIL CREATURES.");
 		}
 		else
 		{
-			endText = new Text("THE EVIL CREATURES WON,\nAND BIRTHDAYS CONTINUED TO BE\nSTOLEN TO GIVE THEM POWER.\nNOBODY WAS HAPPY.");
+			if(won)
+			{
+				endText = new Text("THE DAY WAS SAVED AND\nEVERYONE WAS HAPPY.\nCAKE THREW A PARTY TO CELEBRATE.");
+			}
+			else
+			{
+				endText = new Text("THE EVIL CREATURES WON,\nAND BIRTHDAYS CONTINUED TO BE\nSTOLEN TO GIVE THEM POWER.\nNOBODY WAS HAPPY.");
+			}
 		}
 		endText.color = 0xee2200;
 		endText.size = 30;
 		endText.align = "center";
-		endText.x = (HXP.screen.width * 0.5) - (endText.width * 0.5);
-		endText.y = 100;
+		endText.x = (HXP.screen.width * 0.5) - (endText.textWidth * 0.5);
+		endText.y = 60;
 		endText.alpha = 0;
 		addGraphic(endText);
+		
+		modeText = new Text((gameMode == TitleScene.GameMode.Waves ? "MODE: 5 WAVES" : "MODE: ENDLESS WAVES"));
+		modeText.color = 0xee2200;
+		modeText.size = 30;
+		modeText.x = (HXP.screen.width * 0.5) - (modeText.textWidth * 0.5);
+		modeText.y = 250;
+		modeText.alpha = 0;
+		addGraphic(modeText);
 		
 		scoreText = new Text("SCORE: " + Globals.score);
 		scoreText.color = 0xccbb00;
 		scoreText.size = 30;
-		scoreText.x = (HXP.screen.width * 0.5) - (scoreText.width * 0.5);
-		scoreText.y = 280;
+		scoreText.x = (HXP.screen.width * 0.5) - (scoreText.textWidth * 0.5);
+		scoreText.y = 300;
 		scoreText.alpha = 0;
 		addGraphic(scoreText);
 		
 		highscoreText = new Text("HIGHSCORE: " + highscore);
 		highscoreText.color = 0xffbb00;
 		highscoreText.size = 30;
-		highscoreText.x = (HXP.screen.width * 0.5) - (highscoreText.width * 0.5);
-		highscoreText.y = 310;
+		highscoreText.x = (HXP.screen.width * 0.5) - (highscoreText.textWidth * 0.5);
+		highscoreText.y = 330;
 		highscoreText.alpha = 0;
 		addGraphic(highscoreText);
 		
 		spaceText = new Text("PRESS SPACE");
 		spaceText.color = 0x66cc00;
 		spaceText.size = 24;
-		spaceText.x = (HXP.screen.width * 0.5) - (spaceText.width * 0.5);
-		spaceText.y = 400;
+		spaceText.x = (HXP.screen.width * 0.5) - (spaceText.textWidth * 0.5);
+		spaceText.y = 410;
 		spaceText.alpha = 0;
 		addGraphic(spaceText);
 
@@ -109,32 +139,39 @@ class EndScene extends Scene
 				}
 				else if(timer >= 3)
 				{
-					if(scoreText.alpha < 1)
+					if(modeText.alpha < 1)
 					{
-						scoreText.alpha += 2 * HXP.elapsed;
+						modeText.alpha += 2 * HXP.elapsed;
 					}
 					else if(timer >= 4)
 					{
-						if(highscoreText.alpha < 1)
+						if(scoreText.alpha < 1)
 						{
-							highscoreText.alpha += 2 * HXP.elapsed;
+							scoreText.alpha += 2 * HXP.elapsed;
 						}
 						else if(timer >= 5)
 						{
-							if(spaceText.alpha < 1)
+							if(highscoreText.alpha < 1)
 							{
-								spaceText.alpha += 2 * HXP.elapsed;
+								highscoreText.alpha += 2 * HXP.elapsed;
 							}
-							else if(Input.pressed("next"))
+							else if(timer >= 6)
 							{
-								if(black.alpha > 0)
+								if(spaceText.alpha < 1)
 								{
-									black.alpha -= HXP.elapsed;
+									spaceText.alpha += 2 * HXP.elapsed;
 								}
-								else
+								else if(Input.pressed("next"))
 								{
-									HXP.scene.removeAll();
-									HXP.scene = new TitleScene();
+									if(black.alpha > 0)
+									{
+										black.alpha -= HXP.elapsed;
+									}
+									else
+									{
+										HXP.scene.removeAll();
+										HXP.scene = new TitleScene();
+									}
 								}
 							}
 						}

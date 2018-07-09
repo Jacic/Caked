@@ -6,9 +6,9 @@
  
 class Globals
 {
-	public static inline var basePickupDropChance:Float = 0.04;
-	public static inline var maxLife:Int = 3;
-	public static inline var numWaves:Int = 5;
+	public static inline var BASE_PICKUP_DROP_CHANCE:Float = 0.04;
+	public static inline var NUM_WAVES:Int = 5;
+	
 	public static var pickupDropChance:Float;
 	public static var enemiesDefeatedSincePickup:Int;
 	public static var curWave:Int;

@@ -18,11 +18,27 @@ import haxepunk.graphics.text.Text;
 import haxepunk.input.Input;
 import haxepunk.input.Key;
 #end
+
+enum GameState
+{
+	Entering;
+	Readying;
+	Playing;
+	TimeLeftCountdown;
+	WaveEnd;
+	GameEnd;
+	Leaving;
+}
  
 class PlayScene extends Scene
 {	
+	private static inline var ROW1Y:Int = 40;
+	private static inline var ROW2Y:Int = 90;
+	private static inline var ROW3Y:Int = 130;
+	
 	private var black:Image;
-	private var state:String;
+	private var gameMode:TitleScene.GameMode;
+	private var state:GameState;
 	private var won:Bool;
 	private var newEnemyX:Int;
 	private var enemiesPerRow:Int;
@@ -32,9 +48,6 @@ class PlayScene extends Scene
 	private var livesToAddToScoreTimer:Float;
 	private var livesLeftCountdownWaitTimer:Float;
 
-	private var row1Y:Int;
-	private var row2Y:Int;
-
 	private var timeText:Text;
 	private var scoreText:Text;
 	private var lifeText:Text;
@@ -43,7 +56,7 @@ class PlayScene extends Scene
 	private var lifeToScoreSfx:Sfx;
 	private var bgmSfx:Sfx;
 	
-	override public function new()
+	override public function new(gameMode:TitleScene.GameMode)
 	{
 		super();
 
@@ -57,25 +70,24 @@ class PlayScene extends Scene
 		Globals.allInPos = false;
 		Globals.time = 99;
 		Globals.score = 0;
-		Globals.player = new Player(Globals.maxLife);
+		Globals.player = new Player(Player.MAX_LIFE);
 		Globals.candles = [];
 		Globals.enemiesArray = [];
 		Globals.enemiesDefeatedSincePickup = 0;
-		Globals.pickupDropChance = Globals.basePickupDropChance;
+		Globals.pickupDropChance = Globals.BASE_PICKUP_DROP_CHANCE;
 
 		add(Particles.twinkle);
 		add(Particles.candletrail);
 		add(Particles.deatheffects);
 
-		state = "entering";
+		this.gameMode = gameMode;
+		state = Entering;
 		won = false;
 		newEnemyX = 30;
 		enemiesPerRow = 12;
 		enemiesAdded = 0;
-		row1Y = 40;
-		row2Y = 90;
 		
-		//bgmSnd = new Sfx("audio/bgm.mp3");
+		bgmSfx = new Sfx("audio/bgm.wav");
 		timeToScoreSfx = new Sfx("audio/timeaddtoscore.wav");
 		lifeToScoreSfx = new Sfx("audio/lifeaddtoscore.wav");
 		
@@ -90,15 +102,15 @@ class PlayScene extends Scene
 		timeText = new Text("99");
 		timeText.color = 0xee4400;
 		timeText.size = 38;
-		timeText.x = (HXP.screen.width * 0.5) - (timeText.width * 0.5);
+		timeText.x = (HXP.screen.width * 0.5) - (timeText.textWidth * 0.5);
 		timeText.y = 2;
 		addGraphic(timeText, -10);
 		
 		waveText = new Text("WAVE 1");
 		waveText.color = 0xccaa00;
 		waveText.size = 70;
-		waveText.x = (HXP.screen.width * 0.5) - (waveText.width * 0.5);
-		waveText.y = (HXP.screen.height * 0.5) - (waveText.height * 0.5);
+		waveText.x = (HXP.screen.width * 0.5) - (waveText.textWidth * 0.5);
+		waveText.y = (HXP.screen.height * 0.5) - (waveText.textHeight * 0.5);
 		waveText.alpha = 0;
 		addGraphic(waveText, -10);
 		
@@ -111,14 +123,14 @@ class PlayScene extends Scene
 		scoreText.color = 0xccbb00;
 		scoreText.size = 35;
 		scoreText.x = 50;
-		scoreText.y = hud.y + (hud.height * 0.5) - (scoreText.height * 0.5);
+		scoreText.y = hud.y + (hud.height * 0.5) - (scoreText.textHeight * 0.5);
 		addGraphic(scoreText, -10);
 		
 		lifeText = new Text("LIFE:");
 		lifeText.color = 0xdd1111;
 		lifeText.size = 35;
 		lifeText.x = 460;
-		lifeText.y = hud.y + (hud.height * 0.5) - (lifeText.height * 0.5);
+		lifeText.y = hud.y + (hud.height * 0.5) - (lifeText.textHeight * 0.5);
 		addGraphic(lifeText, -10);
 		
 		black = Image.createRect(640, 480, 0x000000, 1);
@@ -131,7 +143,7 @@ class PlayScene extends Scene
 	{
 		switch(state)
 		{
-			case "entering":
+			case Entering:
 				if(black.alpha > 0)
 				{
 					black.alpha -= HXP.elapsed;
@@ -139,15 +151,15 @@ class PlayScene extends Scene
 				else
 				{
 					Globals.playing = true;
-					state = "readying";
+					state = Readying;
 				}
-			case "readying":
+			case Readying:
 				if(Globals.allInPos)
 				{
 					waveText.alpha -= HXP.elapsed;
 					if(waveText.alpha == 0)
 					{
-						state = "playing";
+						state = Playing;
 					}
 				}
 				else
@@ -159,16 +171,16 @@ class PlayScene extends Scene
 
 					if(Globals.numInPos == Globals.enemiesInWave)
 					{
-						//if(!bgmSnd.playing)
+						if(!bgmSfx.playing)
 						{
-							//bgmSnd.loop();
+							bgmSfx.loop(0.5);
 						}
 						Globals.allInPos = true;
 						Globals.inControl = true;
 						waveText.alpha = 1;
 					}
 				}
-			case "playing":
+			case Playing:
 				Globals.enemiesArray = [];
 				var pickups:Array<Entity> = [];
 
@@ -191,17 +203,16 @@ class PlayScene extends Scene
 						HXP.scene.remove(li[j]);
 					}
 					timeLeftCountdownWaitTimer = 1.0;
-					timeToAddToScoreTimer = 0.1;
-					state = "timeLeftCountDown";
+					timeToAddToScoreTimer = 0.09;
+					state = TimeLeftCountdown;
 				}
 				
 				Globals.time -= HXP.elapsed;
 				if(Globals.time <= 0 || Globals.player.dead)
 				{
-					state = "leaving";
+					state = Leaving;
 				}
-
-			case "timeLeftCountDown":
+			case TimeLeftCountdown:
 				if(timeLeftCountdownWaitTimer > 0) //wait briefly before adding score
 				{
 					timeLeftCountdownWaitTimer -= HXP.elapsed;
@@ -218,27 +229,25 @@ class PlayScene extends Scene
 						if(Globals.time > 0)
 						{
 							//actually do the subtracting from the time left and adding to the score
-							var difference:Int = Math.ceil(Math.min(3, Globals.time));
-							Globals.time -= difference;
-							Globals.score += difference * 10;
-							timeToAddToScoreTimer = 0.1;
+							addTimeToScore();
 							timeToScoreSfx.play(0.5);
 						}
 						else
 						{
-							state = "waveEnd";
+							state = WaveEnd;
 						}
 					}
 				}
-			case "waveEnd":
+			case WaveEnd:
 				Globals.curWave += 1;
 				waveText.text = "WAVE " + Globals.curWave;
-				if(Globals.curWave > Globals.numWaves)
+				waveText.x = (HXP.screen.width * 0.5) - (waveText.textWidth * 0.5);
+				if(gameMode != TitleScene.GameMode.Endless && Globals.curWave > Globals.NUM_WAVES)
 				{
 					won = true;
 					livesLeftCountdownWaitTimer = 0.25;
 					livesToAddToScoreTimer = 0.5;
-					state = "gameEnd";
+					state = GameEnd;
 				}
 				else
 				{
@@ -246,9 +255,9 @@ class PlayScene extends Scene
 					Globals.allInPos = false;
 					Globals.time = 99;
 					enemiesAdded = 0;
-					state = "readying";
+					state = Readying;
 				}
-			case "gameEnd":
+			case GameEnd:
 				if(livesLeftCountdownWaitTimer > 0)
 				{
 					livesLeftCountdownWaitTimer -= HXP.elapsed;
@@ -269,20 +278,21 @@ class PlayScene extends Scene
 						}
 						else
 						{
-							state = "leaving";
+							state = Leaving;
 						}
 					}
 				}
-			case "leaving":
+			case Leaving:
 				if(black.alpha < 1)
 				{
 					black.alpha += HXP.elapsed;
+					bgmSfx.volume -= 0.5 * HXP.elapsed;
 				}
 				else
 				{
-					//bgmSnd.stop();
+					bgmSfx.stop();
 					HXP.scene.removeAll();
-					HXP.scene = new EndScene(won);
+					HXP.scene = new EndScene(won, gameMode);
 				}
 		}
 		
@@ -311,11 +321,11 @@ class PlayScene extends Scene
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
-					add(new Enemy1(newEnemyX, row1Y, 110));
+					add(new Enemy1(newEnemyX, ROW1Y, 110));
 				}
 				else
 				{
-					add(new Enemy1(newEnemyX, row2Y, 110));
+					add(new Enemy1(newEnemyX, ROW2Y, 110));
 				}
 			case 2:
 				if(newEnemyX > enemiesPerRow * 50)
@@ -324,11 +334,11 @@ class PlayScene extends Scene
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
-					add(new Enemy1(newEnemyX, row1Y, 120));
+					add(new Enemy1(newEnemyX, ROW1Y, 120));
 				}
 				else
 				{
-					add(new Enemy2(newEnemyX, row2Y, 120));
+					add(new Enemy2(newEnemyX, ROW2Y, 120));
 				}
 			case 3:
 				if(newEnemyX > enemiesPerRow * 50)
@@ -337,11 +347,11 @@ class PlayScene extends Scene
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
-					add(new Enemy2(newEnemyX, row1Y, 130));
+					add(new Enemy2(newEnemyX, ROW1Y, 130));
 				}
 				else
 				{
-					add(new Enemy1(newEnemyX, row2Y, 130));
+					add(new Enemy1(newEnemyX, ROW2Y, 130));
 				}
 			case 4:
 				if(newEnemyX > enemiesPerRow * 50)
@@ -350,11 +360,11 @@ class PlayScene extends Scene
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
-					add(new Enemy2(newEnemyX, row1Y, 135));
+					add(new Enemy2(newEnemyX, ROW1Y, 135));
 				}
 				else
 				{
-					add(new Enemy2(newEnemyX, row2Y, 135));
+					add(new Enemy2(newEnemyX, ROW2Y, 135));
 				}
 			case 5:
 				if(newEnemyX > enemiesPerRow * 50)
@@ -363,11 +373,29 @@ class PlayScene extends Scene
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
-					add(new Enemy2(newEnemyX, row1Y, 140));
+					add(new Enemy2(newEnemyX, ROW1Y, 140));
 				}
 				else
 				{
-					add(new Enemy2(newEnemyX, row2Y, 140));
+					add(new Enemy2(newEnemyX, ROW2Y, 140));
+				}
+			default: //endless mode
+				Globals.enemiesInWave = 36;
+				if(newEnemyX > enemiesPerRow * 50)
+				{
+					newEnemyX = 40;
+				}
+				if(enemiesAdded < enemiesPerRow)
+				{
+					add(new Enemy2(newEnemyX, ROW1Y, 140));
+				}
+				else if(enemiesAdded < enemiesPerRow * 2)
+				{
+					add(new Enemy1(newEnemyX, ROW2Y, 140));
+				}
+				else
+				{
+					add(new Enemy2(newEnemyX, ROW3Y, 140));
 				}
 		}
 
@@ -377,6 +405,9 @@ class PlayScene extends Scene
 	
 	private function addTimeToScore()
 	{
-
+		var difference:Int = Math.ceil(Math.min(3, Globals.time));
+		Globals.time -= difference;
+		Globals.score += difference * 10;
+		timeToAddToScoreTimer = 0.09;
 	}
 }

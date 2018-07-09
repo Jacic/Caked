@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
-	<meta title="Caked" package="com.jacobwgames.Caked" version="2.0.0" company="jacobwgames" />
+	<meta title="Caked" package="com.jacobwgames.Caked" version="2.1.0" company="jacobwgames" />
 
  	<app file="Caked" main="Main" path="bin" />
 

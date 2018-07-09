@@ -17,7 +17,9 @@ import haxepunk.input.Key;
 #end
  
 class Player extends Entity
-{	
+{
+	public static var MAX_LIFE:Int = 3;
+
 	public var life(default, null):Int;
 	public var dead(default, null):Bool;
 	private var dying:Bool;
@@ -113,7 +115,7 @@ class Player extends Entity
 							case Points500:
 								Globals.score += 500;
 							case Health:
-								if(life < Globals.maxLife)
+								if(life < Player.MAX_LIFE)
 								{
 									life += 1;
 								}
@@ -172,8 +174,10 @@ class Player extends Entity
 			Particles.deatheffects.playerHit(e.x + e.halfWidth - 4, this.top - 4);
 			#if (HaxePunk <= "2.6.1")
 			HXP.screen.shake(10, 0.15);
-			#else
+			#elseif (HaxePunk < "4.0.0")
 			HXP.screen.shake(0.15, 10);
+			#else
+			HXP.camera.shake(0.15, 10);
 			#end
 
 			if(life <= 0)

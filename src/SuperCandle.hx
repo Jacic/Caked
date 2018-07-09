@@ -73,8 +73,10 @@ class SuperCandle extends Entity
 					Globals.score += en.value;
 					#if (HaxePunk <= "2.6.1")
 					HXP.screen.shake(4, 0.25);
-					#else
+					#elseif (HaxePunk < "4.0.0")
 					HXP.screen.shake(0.25, 4);
+					#else
+					HXP.camera.shake(0.25, 4);
 					#end
 				}
 			}

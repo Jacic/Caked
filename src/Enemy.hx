@@ -147,13 +147,13 @@ class Enemy extends Entity
 				//drop pickup and reset pickup chance
 				var p:Pickup = new Pickup(x, y, speed, Pickup.getRandomType());
 				HXP.scene.add(p);
-				Globals.pickupDropChance = Globals.basePickupDropChance;
+				Globals.pickupDropChance = Globals.BASE_PICKUP_DROP_CHANCE;
 				Globals.enemiesDefeatedSincePickup = 0;
 			}
 			else
 			{
 				//increase chance of pickup
-				Globals.pickupDropChance += Globals.basePickupDropChance;
+				Globals.pickupDropChance += Globals.BASE_PICKUP_DROP_CHANCE;
 				Globals.enemiesDefeatedSincePickup += 1;
 			}
 
