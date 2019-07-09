@@ -16,6 +16,7 @@ import haxepunk.input.Key;
 import haxepunk.graphics.text.Text;
 #end
 import haxepunk.graphics.Image;
+import haxepunk.graphics.shader.SceneShader;
 import flash.text.TextFormatAlign;
 
 enum GameMode
@@ -27,6 +28,8 @@ enum GameMode
 enum State
 {
 	Main;
+	ToModeSelection;
+	ModeSelection;
 	Starting;
 }
 
@@ -37,15 +40,31 @@ class TitleScene extends Scene
 	private var gameMode:GameMode;
 	private var startText:Text;
 	private var modeText:Text;
+	private var modeChangeText:Text;
+	private var modeDescText:Text;
+	private var infoText:Text;
 	private var black:Image;
+
+	private var modeTextSoundPlayed:Bool;
+	private var modeDescTextSoundPlayed:Bool;
+
+	private var modeTextFinalX:Float;
+	private var modeChangeTextFinalX:Float;
+	private var modeDescTextFinalY:Float;
 	
 	override public function new()
 	{
 		super();
 
+		var scanlineShader = SceneShader.fromAsset("shaders/scanline.frag");
+		scanlineShader.setUniform("scale", 1.0);
+		shaders = [scanlineShader];
+
 		state = Main;
 		fadingDir = -1;
 		gameMode = Waves;
+		modeTextSoundPlayed = false;
+		modeDescTextSoundPlayed = false;
 		HXP.screen.color = 0x55ff88;
 		
 		var titleText = new Text("Cake'd");
@@ -65,18 +84,28 @@ class TitleScene extends Scene
 		modeText = new Text("5 WAVES");
 		modeText.size = 25;
 		modeText.color = 0xee2222;
-		modeText.x = (HXP.screen.width * 0.5) - (modeText.textWidth * 0.5);
+		modeText.x = -modeText.textWidth;
 		modeText.y = 280;
 		addGraphic(modeText);
+		modeTextFinalX = (HXP.screen.width * 0.5) - (modeText.textWidth * 0.5);
 		
-		var modeChangeText = new Text("Up/Down to change mode");
+		modeChangeText = new Text("Up/Down to change mode");
 		modeChangeText.size = 20;
 		modeChangeText.color = 0xee2222;
-		modeChangeText.x = (HXP.screen.width * 0.5) - (modeChangeText.textWidth * 0.5);
+		modeChangeText.x = HXP.screen.width + 100;
 		modeChangeText.y = 310;
 		addGraphic(modeChangeText);
+		modeChangeTextFinalX = (HXP.screen.width * 0.5) - (modeChangeText.textWidth * 0.5);
+		
+		modeDescText = new Text("Play through a set 5 waves");
+		modeDescText.size = 20;
+		modeDescText.color = 0x2299ff;
+		modeDescText.x = (HXP.screen.width * 0.5) - (modeDescText.textWidth * 0.5);
+		modeDescText.y = HXP.screen.height;
+		addGraphic(modeDescText);
+		modeDescTextFinalY = 405;
 
-		var infoText = new Text("Birthdays are being attacked by evil\ntime-stealing creatures! Help Cake fight them off!\n\nArrows/AD to move, Space to shoot\nP to pause/unpause");
+		infoText = new Text("Birthdays are being attacked by evil\ntime-stealing creatures! Help Cake fight them off!\n\nArrows/AD to move, Space/Shift to shoot\nP to pause/unpause");
 		infoText.size = 20;
 		infoText.align = TextFormatAlign.CENTER;
 		infoText.color = 0x2299ff;
@@ -107,13 +136,66 @@ class TitleScene extends Scene
 		switch(state)
 		{
 			case Main:
+				if(Input.pressed("start"))
+				{
+					AudioHandler.getInstance().pickup.play();
+					state = ToModeSelection;
+				}
+			case ToModeSelection:
+				//move text around
+				if(infoText.y < HXP.screen.height)
+				{
+					infoText.y += 500 * HXP.elapsed;
+				}
+				
+				if(modeText.x < modeTextFinalX)
+				{
+					modeText.x += 600 * HXP.elapsed;
+				}
+				else
+				{
+					modeText.x = modeTextFinalX;
+					if(!modeTextSoundPlayed)
+					{
+						AudioHandler.getInstance().playerHit.play();
+						modeTextSoundPlayed = true;
+					}
+				}
+
+				if(modeChangeText.x > modeChangeTextFinalX)
+				{
+					modeChangeText.x -= 600 * HXP.elapsed;
+				}
+				else
+				{
+					modeChangeText.x = modeChangeTextFinalX;
+					if(!modeDescTextSoundPlayed)
+					{
+						AudioHandler.getInstance().playerHit.play();
+						modeDescTextSoundPlayed = true;
+					}
+
+					if(modeDescText.y > modeDescTextFinalY)
+					{
+						modeDescText.y -= 200 * HXP.elapsed;
+					}
+					else
+					{
+						modeDescText.y = modeDescTextFinalY;
+						AudioHandler.getInstance().playerHit.play();
+						state = ModeSelection;
+					}
+				}
+			case ModeSelection:
 				if(Input.pressed("changeMode"))
 				{
+					AudioHandler.getInstance().pickup.play();
 					changeMode();
 				}
 
 				if(Input.pressed("start"))
 				{
+					AudioHandler.getInstance().pickup.play();
 					state = Starting;
 				}
 			case Starting:
@@ -138,12 +220,16 @@ class TitleScene extends Scene
 			gameMode = Endless;
 			modeText.text = "ENDLESS WAVES";
 			modeText.x = (HXP.screen.width * 0.5) - (modeText.textWidth * 0.5);
+			modeDescText.text = "Play through as many waves as you can";
+			modeDescText.x = (HXP.screen.width * 0.5) - (modeDescText.textWidth * 0.5);
 		}
 		else
 		{
 			gameMode = Waves;
 			modeText.text = "5 WAVES";
 			modeText.x = (HXP.screen.width * 0.5) - (modeText.textWidth * 0.5);
+			modeDescText.text = "Play through a set 5 waves";
+			modeDescText.x = (HXP.screen.width * 0.5) - (modeDescText.textWidth * 0.5);
 		}
 	}
 }

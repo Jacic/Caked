@@ -18,7 +18,7 @@ class Lightning extends Entity
 		super();
 
 		image = new Spritemap("gfx/lightning.png", 12, 12);
-		image.add("anim", [0, 1], 4, true);
+		image.add("anim", [0, 1], 6, true);
 		image.play("anim");
 		graphic = image;
 		setHitbox(12, 12);
@@ -33,7 +33,7 @@ class Lightning extends Entity
 	{
 		super.update();
 		
-		if(y <= 440)
+		if(y <= Globals.FLOOR_POS)
 		{
 			y += speed * HXP.elapsed;
 		}

@@ -71,19 +71,15 @@ class Candle extends Entity
 			#end
 			if(en != null)
 			{
-				if(en.hit())
+				if(en.hit(2))
 				{
 					isFired = false;
 					x = Globals.player.x + 15 + (12 * candleNum);
 					y = Globals.player.top - image.height + 2;
 					Globals.score += en.value;
-					#if (HaxePunk <= "2.6.1")
-					HXP.screen.shake(2, 0.25);
-					#elseif (HaxePunk < "4.0.0")
-					HXP.screen.shake(0.25, 2);
-					#else
-					HXP.camera.shake(0.25, 2);
-					#end
+
+					//enemiesDefeated is incremented in the Enemy's hit() function, so at this point if it is equal to the number of
+					//enemies in the wave, we just hit the last enemy
 				}
 			}
 		}

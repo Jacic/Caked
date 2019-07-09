@@ -6,7 +6,6 @@
 
 import haxepunk.Entity;
 import haxepunk.HXP;
-import haxepunk.Sfx;
 import haxepunk.graphics.Image;
 #if (HaxePunk <= "2.6.1")
 import haxepunk.utils.Input;
@@ -30,11 +29,6 @@ class Player extends Entity
 	private var playerH:Int;
 	private var hasSuper:Bool;
 	private var superCandle:SuperCandle;
-	private var shootSfx:Sfx;
-	private var superShootSfx:Sfx;
-	private var hitSfx:Sfx;
-	private var deathSfx:Sfx;
-	private var pickupSfx:Sfx;
 	
 	override public function new(life:Int)
 	{
@@ -53,17 +47,11 @@ class Player extends Entity
 		graphic = playerImg;
 		setHitbox(64, 32, -8, -14);
 		x = (HXP.screen.width * 0.5) - (playerW * 0.5);
-		y = 440 - playerH;
-
-		shootSfx = new Sfx("audio/playershoot.wav");
-		superShootSfx = new Sfx("audio/supercandleshoot.wav");
-		hitSfx = new Sfx("audio/playerhit.wav");
-		deathSfx = new Sfx("audio/playerdead.wav");
-		pickupSfx = new Sfx("audio/pickup.wav");
+		y = Globals.FLOOR_POS - playerH;
 		
 		Input.define("left", [Key.A, Key.LEFT]);
 		Input.define("right", [Key.D, Key.RIGHT]);
-		Input.define("shoot", [Key.SPACE]);
+		Input.define("shoot", [Key.SPACE, Key.SHIFT]);
 	}
 	
 	override public function update()
@@ -119,15 +107,23 @@ class Player extends Entity
 								{
 									life += 1;
 								}
+								else
+								{
+									Globals.score += 100;
+								}
 							case Super:
-								if(!hasSuper)
+								if(hasSuper)
+								{
+									Globals.score += 100;
+								}
+								else
 								{
 									hasSuper = true;
 									superCandle = new SuperCandle();
 									HXP.scene.add(superCandle);
 								}
 						}
-						pickupSfx.play(0.5);
+						AudioHandler.getInstance().pickup.play(0.5);
 						HXP.scene.remove(e);
 				}
 			}
@@ -148,7 +144,7 @@ class Player extends Entity
 		{
 			superCandle.isFired = true;
 			hasSuper = false;
-			superShootSfx.play(0.5);
+			AudioHandler.getInstance().superCandleShoot.play(0.5);
 		}
 		else
 		{
@@ -157,7 +153,7 @@ class Player extends Entity
 			{
 				if(!Globals.candles[i].isFired)
 				{
-					shootSfx.play(0.5);
+					AudioHandler.getInstance().playerShoot.play(0.5);
 					Globals.candles[i].isFired = true;
 					break;
 				}
@@ -191,12 +187,12 @@ class Player extends Entity
 					Globals.candles[i].image.alpha = 0;
 				}
 				Particles.deatheffects.playerDeath(x, y, width, height);
-				deathSfx.play(0.5);
+				AudioHandler.getInstance().playerDead.play(0.5);
 			}
 			else
 			{
 				//play the normal hit sound
-				hitSfx.play(0.5);
+				AudioHandler.getInstance().playerHit.play(0.5);
 			}
 		}
 	}
@@ -204,6 +200,6 @@ class Player extends Entity
 	public function countDownLife()
 	{
 		life -= 1;
-		Globals.score += 200;
+		Globals.score += 250;
 	}
 }

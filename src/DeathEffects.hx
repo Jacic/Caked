@@ -29,6 +29,10 @@ class DeathEffects extends Entity
 		emitter.newType("enemy2Death", [10, 11, 12, 13, 14]);
 		emitter.setMotion("enemy2Death", 0, 75, 0.75, 180, 15, 0.5);
 		emitter.setGravity("enemy2Death", 8.0, 1.0);
+		
+		emitter.newType("enemy3Death", [15, 16, 17, 18, 19]);
+		emitter.setMotion("enemy3Death", 0, 75, 0.75, 180, 15, 0.5);
+		emitter.setGravity("enemy3Death", 8.0, 1.0);
 
 		graphic = emitter;
 		layer = -5;
@@ -36,6 +40,7 @@ class DeathEffects extends Entity
 
 	public function playerHit(x:Float, y:Float)
 	{
+		emitter.emit("playerHit", x, y);
 		emitter.emit("playerHit", x, y);
 	}
 	
@@ -57,6 +62,8 @@ class DeathEffects extends Entity
 					emitter.emitInRectangle("enemy1Death", x, y, width, height);
 				case "Enemy2":
 					emitter.emitInRectangle("enemy2Death", x, y, width, height);
+				case "Enemy3":
+					emitter.emitInRectangle("enemy3Death", x, y, width, height);
 			}
 		}
 	}

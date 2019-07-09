@@ -17,6 +17,7 @@ import haxepunk.input.Input;
 import haxepunk.input.Key;
 #end
 import haxepunk.utils.Data;
+import haxepunk.graphics.shader.SceneShader;
  
 class EndScene extends Scene
 {
@@ -32,6 +33,10 @@ class EndScene extends Scene
 	override public function new(won:Bool, gameMode:TitleScene.GameMode)
 	{
 		super();
+
+		var scanlineShader = SceneShader.fromAsset("shaders/scanline.frag");
+		scanlineShader.setUniform("scale", 1.0);
+		shaders = [scanlineShader];
 		
 		black = Image.createRect(640, 480, 0x000000, 1);
 		addGraphic(black, 0, 0, 0);

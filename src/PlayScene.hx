@@ -7,7 +7,6 @@
 import haxepunk.Scene;
 import haxepunk.Entity;
 import haxepunk.HXP;
-import haxepunk.Sfx;
 import haxepunk.graphics.Image;
 #if (HaxePunk <= "2.6.1")
 import haxepunk.graphics.Text;
@@ -18,6 +17,7 @@ import haxepunk.graphics.text.Text;
 import haxepunk.input.Input;
 import haxepunk.input.Key;
 #end
+import haxepunk.graphics.shader.SceneShader;
 
 enum GameState
 {
@@ -33,8 +33,8 @@ enum GameState
 class PlayScene extends Scene
 {	
 	private static inline var ROW1Y:Int = 40;
-	private static inline var ROW2Y:Int = 90;
-	private static inline var ROW3Y:Int = 130;
+	private static inline var ROW2Y:Int = 80;
+	private static inline var ROW3Y:Int = 120;
 	
 	private var black:Image;
 	private var gameMode:TitleScene.GameMode;
@@ -52,20 +52,22 @@ class PlayScene extends Scene
 	private var scoreText:Text;
 	private var lifeText:Text;
 	private var waveText:Text;
-	private var timeToScoreSfx:Sfx;
-	private var lifeToScoreSfx:Sfx;
-	private var bgmSfx:Sfx;
 	
 	override public function new(gameMode:TitleScene.GameMode)
 	{
 		super();
 
-		HXP.screen.color = 0x44ffee;
+		var scanlineShader = SceneShader.fromAsset("shaders/scanline.frag");
+		scanlineShader.setUniform("scale", 1.0);
+		shaders = [scanlineShader];
+
+		HXP.screen.color = 0x40dfff;
 		
 		Globals.playing = false;
 		Globals.inControl = false;
 		Globals.curWave = 1;
 		Globals.enemiesInWave = 24;
+		Globals.enemiesDefeated = 0;
 		Globals.numInPos = 0;
 		Globals.allInPos = false;
 		Globals.time = 99;
@@ -86,10 +88,6 @@ class PlayScene extends Scene
 		newEnemyX = 30;
 		enemiesPerRow = 12;
 		enemiesAdded = 0;
-		
-		bgmSfx = new Sfx("audio/bgm.wav");
-		timeToScoreSfx = new Sfx("audio/timeaddtoscore.wav");
-		lifeToScoreSfx = new Sfx("audio/lifeaddtoscore.wav");
 		
 		add(Globals.player);
 		for(i in 0...5)
@@ -171,12 +169,13 @@ class PlayScene extends Scene
 
 					if(Globals.numInPos == Globals.enemiesInWave)
 					{
-						if(!bgmSfx.playing)
+						if(!AudioHandler.getInstance().bgm.playing)
 						{
-							bgmSfx.loop(0.5);
+							AudioHandler.getInstance().bgm.loop(0.5);
 						}
 						Globals.allInPos = true;
 						Globals.inControl = true;
+						Globals.numEnemyRows = Math.ceil(Globals.enemiesInWave / enemiesPerRow);
 						waveText.alpha = 1;
 					}
 				}
@@ -230,7 +229,7 @@ class PlayScene extends Scene
 						{
 							//actually do the subtracting from the time left and adding to the score
 							addTimeToScore();
-							timeToScoreSfx.play(0.5);
+							AudioHandler.getInstance().timeAddToScore.play(0.5);
 						}
 						else
 						{
@@ -254,6 +253,7 @@ class PlayScene extends Scene
 					Globals.numInPos = 0;
 					Globals.allInPos = false;
 					Globals.time = 99;
+					Globals.enemiesDefeated = 0;
 					enemiesAdded = 0;
 					state = Readying;
 				}
@@ -274,7 +274,7 @@ class PlayScene extends Scene
 						{
 							Globals.player.countDownLife();
 							livesToAddToScoreTimer = 0.5;
-							lifeToScoreSfx.play(0.5);
+							AudioHandler.getInstance().lifeAddToScore.play(0.5);
 						}
 						else
 						{
@@ -286,11 +286,11 @@ class PlayScene extends Scene
 				if(black.alpha < 1)
 				{
 					black.alpha += HXP.elapsed;
-					bgmSfx.volume -= 0.5 * HXP.elapsed;
+					AudioHandler.getInstance().bgm.volume -= 0.5 * HXP.elapsed;
 				}
 				else
 				{
-					bgmSfx.stop();
+					AudioHandler.getInstance().bgm.stop();
 					HXP.scene.removeAll();
 					HXP.scene = new EndScene(won, gameMode);
 				}
@@ -317,7 +317,7 @@ class PlayScene extends Scene
 			case 1:
 				if(newEnemyX > enemiesPerRow * 50)
 				{
-					newEnemyX = 40;
+					newEnemyX = 30;
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
@@ -330,7 +330,7 @@ class PlayScene extends Scene
 			case 2:
 				if(newEnemyX > enemiesPerRow * 50)
 				{
-					newEnemyX = 40;
+					newEnemyX = 30;
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
@@ -343,7 +343,7 @@ class PlayScene extends Scene
 			case 3:
 				if(newEnemyX > enemiesPerRow * 50)
 				{
-					newEnemyX = 40;
+					newEnemyX = 30;
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
@@ -351,12 +351,12 @@ class PlayScene extends Scene
 				}
 				else
 				{
-					add(new Enemy1(newEnemyX, ROW2Y, 130));
+					add(new Enemy2(newEnemyX, ROW2Y, 130));
 				}
 			case 4:
 				if(newEnemyX > enemiesPerRow * 50)
 				{
-					newEnemyX = 40;
+					newEnemyX = 30;
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
@@ -364,26 +364,26 @@ class PlayScene extends Scene
 				}
 				else
 				{
-					add(new Enemy2(newEnemyX, ROW2Y, 135));
+					add(new Enemy3(newEnemyX, ROW2Y, 135, 2));
 				}
 			case 5:
 				if(newEnemyX > enemiesPerRow * 50)
 				{
-					newEnemyX = 40;
+					newEnemyX = 30;
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
-					add(new Enemy2(newEnemyX, ROW1Y, 140));
+					add(new Enemy3(newEnemyX, ROW1Y, 140, 1));
 				}
 				else
 				{
-					add(new Enemy2(newEnemyX, ROW2Y, 140));
+					add(new Enemy3(newEnemyX, ROW2Y, 140, 2));
 				}
 			default: //endless mode
 				Globals.enemiesInWave = 36;
 				if(newEnemyX > enemiesPerRow * 50)
 				{
-					newEnemyX = 40;
+					newEnemyX = 30;
 				}
 				if(enemiesAdded < enemiesPerRow)
 				{
@@ -391,11 +391,11 @@ class PlayScene extends Scene
 				}
 				else if(enemiesAdded < enemiesPerRow * 2)
 				{
-					add(new Enemy1(newEnemyX, ROW2Y, 140));
+					add(new Enemy3(newEnemyX, ROW2Y, 140, 2));
 				}
 				else
 				{
-					add(new Enemy2(newEnemyX, ROW3Y, 140));
+					add(new Enemy3(newEnemyX, ROW3Y, 140, 3));
 				}
 		}
 
@@ -407,7 +407,7 @@ class PlayScene extends Scene
 	{
 		var difference:Int = Math.ceil(Math.min(3, Globals.time));
 		Globals.time -= difference;
-		Globals.score += difference * 10;
+		Globals.score += difference * 20;
 		timeToAddToScoreTimer = 0.09;
 	}
 }

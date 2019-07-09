@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
-	<meta title="Caked" package="com.jacobwgames.Caked" version="2.1.0" company="jacobwgames" />
+	<meta title="Caked" package="com.jacobwgames.Caked" version="2.2.0" company="jacobwgames" />
 
  	<app file="Caked" main="Main" path="bin" />
 
@@ -15,10 +15,11 @@
 
  	<app preloader="" />
 
-	<assets path="assets/graphics" rename="gfx" include="*.png|*.jpg" embed="true" />
-	<assets path="assets/audio" rename="audio" include="*.mp3|*.wav" if="flash" embed="true" />
+	<assets path="assets/graphics" rename="gfx" include="*.png|*.jpg" />
+	<assets path="assets/audio" rename="audio" include="*.mp3|*.wav" if="flash" />
 	<assets path="assets/audio" rename="audio" include="*.wav|*.ogg" unless="flash" />
-	<assets path="assets/font" rename="font" include="*.ttf" embed="true" />
+	<assets path="assets/font" rename="font" include="*.ttf" />
+	<assets path="assets/shaders" rename="shaders" include="*.vert|*.frag" />
 
 	<icon path="assets/HaxePunk.svg" />
 </project>

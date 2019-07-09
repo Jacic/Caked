@@ -15,6 +15,7 @@ import haxepunk.input.Input;
 import haxepunk.input.Key;
 import haxepunk.graphics.text.Text;
 #end
+import haxepunk.graphics.shader.SceneShader;
  
 class PauseScene extends Scene
 {
@@ -24,6 +25,10 @@ class PauseScene extends Scene
 	override public function new()
 	{
 		super();
+
+		var scanlineShader = SceneShader.fromAsset("shaders/scanline.frag");
+		scanlineShader.setUniform("scale", 1.0);
+		shaders = [scanlineShader];
 
 		fadingDir = -1;
 		HXP.screen.color = 0x000000;

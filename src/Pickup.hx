@@ -76,7 +76,7 @@ class Pickup extends Entity
 		}
 		else
 		{
-			if(y <= 440)
+			if(y <= Globals.FLOOR_POS)
 			{
 				y += speed * HXP.elapsed;
 				image.angle += speed * HXP.elapsed;
